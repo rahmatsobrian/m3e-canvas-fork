@@ -12,7 +12,21 @@ import { Field, IconBtn, Segmented, Toggle } from "./ui";
 
 /** Sheet that slides up from the bottom edge; the canvas above stays usable.
  *  Dragging the handle moves the sheet with the finger; a flick or a long pull closes it. */
-export function BottomSheet({ p, onClose, children }: { p: Palette; onClose: () => void; children: React.ReactNode }) {
+export function BottomSheet({
+  p,
+  onClose,
+  children,
+  tall,
+  bare,
+}: {
+  p: Palette;
+  onClose: () => void;
+  children: React.ReactNode;
+  /** fills most of the screen: for the full panels that are taller than a quick editor */
+  tall?: boolean;
+  /** no padding and no scrolling of its own: the content lays itself out and scrolls where it needs to */
+  bare?: boolean;
+}) {
   const lang = useLang();
   const controls = useDragControls();
   return (
@@ -35,7 +49,8 @@ export function BottomSheet({ p, onClose, children }: { p: Palette; onClose: () 
         left: 0,
         right: 0,
         bottom: 0,
-        maxHeight: "72%",
+        maxHeight: tall ? "90%" : "72%",
+        height: tall ? "90%" : undefined,
         display: "flex",
         flexDirection: "column",
         borderTopLeftRadius: 28,
@@ -63,9 +78,13 @@ export function BottomSheet({ p, onClose, children }: { p: Palette; onClose: () 
       >
         <span style={{ width: 32, height: 4, borderRadius: 2, background: p.outlineVariant }} />
       </button>
-      <div className="no-scrollbar" style={{ overflowY: "auto", padding: "0 14px 16px", minHeight: 0 }}>
-        {children}
-      </div>
+      {bare ? (
+        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>{children}</div>
+      ) : (
+        <div className="no-scrollbar" style={{ overflowY: "auto", padding: "0 14px 16px", minHeight: 0 }}>
+          {children}
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -101,6 +120,7 @@ export function MobileInspector({
   onDelete,
   onDuplicate,
   onClose,
+  onAdvanced,
 }: {
   item: Item;
   palette: Palette;
@@ -108,6 +128,8 @@ export function MobileInspector({
   onDelete: () => void;
   onDuplicate: () => void;
   onClose: () => void;
+  /** opens the full inspector (every option the desktop right panel has) */
+  onAdvanced?: () => void;
 }) {
   const lang = useLang();
   const spec = KIND_SPEC[item.kind];
@@ -149,6 +171,7 @@ export function MobileInspector({
           <Icon name={spec.paletteIcon} size={22} />
         </div>
         <span style={{ fontSize: 16, fontWeight: 700, color: p.onSurface, flex: 1 }}>{KIND_TEXT[lang][item.kind]?.noun ?? spec.label}</span>
+        {onAdvanced && <IconBtn icon="tune" p={p} onClick={onAdvanced} title={t("more", lang)} size={44} />}
         <IconBtn icon="content_copy" p={p} onClick={onDuplicate} title={t("duplicate", lang)} size={44} />
         <IconBtn icon="delete" p={p} danger onClick={onDelete} title={t("delete", lang)} size={44} />
         <IconBtn icon="check" p={p} on onClick={onClose} title={t("done", lang)} size={44} />
@@ -517,11 +540,14 @@ export function MobileSettings({
 export function MobileActionBar({
   p,
   onEdit,
+  onMore,
   onDuplicate,
   onDelete,
 }: {
   p: Palette;
   onEdit: () => void;
+  /** opens the full inspector, the same one the desktop right panel shows */
+  onMore?: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }) {
@@ -562,8 +588,108 @@ export function MobileActionBar({
         <Icon name="tune" size={22} />
         {t("edit", lang)}
       </button>
+      {onMore && <IconBtn icon="more_horiz" p={p} size={52} title={t("more", lang)} onClick={onMore} />}
       <IconBtn icon="content_copy" p={p} size={52} title={t("duplicate", lang)} onClick={onDuplicate} />
       <IconBtn icon="delete" p={p} size={52} danger title={t("delete", lang)} onClick={onDelete} />
+    </div>
+  );
+}
+
+
+export type ToolTab<K extends string = string> = { key: K; icon: string; label: string };
+
+/** The strip of tabs on top of the tools sheet; it scrolls sideways when the screen is narrow. */
+export function MobileTabs<K extends string>({
+  p,
+  tabs,
+  value,
+  onChange,
+}: {
+  p: Palette;
+  tabs: ToolTab<K>[];
+  value: K;
+  onChange: (k: K) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      className="no-scrollbar"
+      style={{ display: "flex", gap: 6, overflowX: "auto", padding: "2px 14px 10px", flex: "0 0 auto", WebkitOverflowScrolling: "touch" }}
+    >
+      {tabs.map((tab) => {
+        const on = tab.key === value;
+        return (
+          <button
+            key={tab.key}
+            role="tab"
+            aria-selected={on}
+            onClick={() => onChange(tab.key)}
+            className="m3-press"
+            style={{
+              flex: "0 0 auto",
+              height: 40,
+              padding: "0 14px 0 10px",
+              borderRadius: 20,
+              border: "none",
+              background: on ? p.secondaryContainer : p.surfaceContainerHigh,
+              color: on ? p.onSecondaryContainer : p.onSurfaceVariant,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <Icon name={tab.icon} size={20} />
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** One row of the "more" sheet: everything the desktop header and rail keep in menus. */
+export type MoreItem = { icon: string; label: string; onClick: () => void; danger?: boolean; href?: string };
+
+export function MobileMore({ p, items }: { p: Palette; items: MoreItem[] }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, paddingBottom: 4 }}>
+      {items.map((it) => {
+        const style: React.CSSProperties = {
+          minHeight: 52,
+          padding: "0 16px",
+          borderRadius: 16,
+          border: "none",
+          background: p.surfaceContainerHigh,
+          color: it.danger ? p.error : p.onSurface,
+          fontSize: 15,
+          fontWeight: 600,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          textAlign: "left",
+          textDecoration: "none",
+        };
+        const body = (
+          <>
+            <Icon name={it.icon} size={24} />
+            {it.label}
+          </>
+        );
+        return it.href ? (
+          <a key={it.label} href={it.href} target="_blank" rel="noreferrer" className="m3-press" style={style}>
+            {body}
+          </a>
+        ) : (
+          <button key={it.label} onClick={it.onClick} className="m3-press" style={style}>
+            {body}
+          </button>
+        );
+      })}
     </div>
   );
 }

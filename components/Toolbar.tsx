@@ -77,8 +77,7 @@ export function Toolbar({
   rightInset,
   mobile,
   onPrompt,
-  onSettings,
-  onLangSheet,
+  onMore,
   tidy,
   onTidy,
   place,
@@ -112,9 +111,8 @@ export function Toolbar({
   rightInset: number;
   mobile?: boolean;
   onPrompt?: () => void;
-  onSettings?: () => void;
-  /** phone: open the language sheet instead of the menu */
-  onLangSheet?: () => void;
+  /** phone: opens the sheet that holds what the desktop keeps in menus (project, language, theme, share) */
+  onMore?: () => void;
   /** the tidy button for the screen being worked on; absent when no screen is in play */
   tidy?: TidyState;
   onTidy?: () => void;
@@ -137,7 +135,7 @@ export function Toolbar({
 }) {
   const lang = useLang();
   if (mobile) {
-    const S = 42;
+    const S = 40;
     return (
       <div
         style={{
@@ -147,6 +145,7 @@ export function Toolbar({
           top: 10,
           display: "flex",
           justifyContent: "center",
+          gap: 8,
           pointerEvents: "none",
           zIndex: 40,
           padding: "0 8px",
@@ -155,31 +154,29 @@ export function Toolbar({
         <Pill p={p}>
           <IconBtn icon="undo" p={p} onClick={onUndo} disabled={!canUndo} title={t("undo", lang)} size={S} />
           <IconBtn icon="redo" p={p} onClick={onRedo} disabled={!canRedo} title={t("redo", lang)} size={S} />
-          <IconBtn icon="translate" p={p} onClick={onLangSheet} title={t("language", lang)} size={S} />
-          <IconBtn icon="palette" p={p} onClick={onSettings} title={t("settings", lang)} size={S} />
-          <GitHubLink p={p} size={S} />
+          {frame === "phone" && <IconBtn icon="add_to_photos" p={p} onClick={onAddFrame} title={t("addFrame", lang)} size={S} />}
+          <IconBtn icon="play_arrow" p={p} onClick={onPreview} title={t("preview", lang)} size={S} fill />
+          <IconBtn icon="more_horiz" p={p} onClick={onMore} title={t("more", lang)} size={S} />
+        </Pill>
+        <Pill p={p}>
           <button
             onClick={onPrompt}
             title={t("copyPrompt", lang)}
+            aria-label={t("copyPrompt", lang)}
             className="m3-press"
             style={{
+              width: S,
               height: S,
-              padding: "0 14px 0 10px",
               borderRadius: S / 2,
               border: "none",
               background: p.primary,
               color: p.onPrimary,
-              fontSize: 14,
-              fontWeight: 700,
               cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              whiteSpace: "nowrap",
+              display: "grid",
+              placeItems: "center",
             }}
           >
             <Icon name="auto_awesome" size={22} />
-            {t("prompt", lang)}
           </button>
         </Pill>
       </div>

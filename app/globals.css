@@ -416,3 +416,21 @@ input.m3-number {
   }
 }
 
+
+/* phone: inputs at 16px keep iOS Safari from zooming the page when one is focused, and the
+   text-size setting of the browser must not resize the editor's chrome */
+@media (max-width: 840px), (pointer: coarse) and (max-width: 1024px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  .app-root input,
+  .app-root textarea,
+  .app-root select {
+    font-size: 16px;
+  }
+  .app-root button,
+  .app-root [role="tab"] {
+    touch-action: manipulation;
+  }
+}
