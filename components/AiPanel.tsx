@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { Palette } from "@/lib/tokens";
 import { t, useLang } from "@/lib/i18n";
-import { AiSettings, PROVIDERS, Provider, providerSpec } from "@/lib/ai";
+import { AiSettings, ApiFormat, PROVIDERS, Provider, formatOf, providerSpec, switchProvider } from "@/lib/ai";
 import { Icon } from "./M3Node";
 
 /** the message shown for a failed request, mapped from the error codes lib/ai throws */
@@ -160,14 +160,53 @@ function ProviderGroup({ value, onChange, p }: { value: Provider; onChange: (k: 
   );
 }
 
+/** Two-way switch for the wire format a custom endpoint speaks. */
+function FormatGroup({ value, onChange, p }: { value: ApiFormat; onChange: (f: ApiFormat) => void; p: Palette }) {
+  const lang = useLang();
+  const opts: { key: ApiFormat; label: string }[] = [
+    { key: "openai", label: t("aiFormatOpenai", lang) },
+    { key: "claude", label: t("aiFormatClaude", lang) },
+  ];
+  return (
+    <div role="radiogroup" aria-label={t("aiFormat", lang)} style={{ display: "flex", gap: 3 }}>
+      {opts.map((o, i) => {
+        const on = o.key === value;
+        const l = i === 0 ? 22 : 8;
+        const r = i === opts.length - 1 ? 22 : 8;
+        return (
+          <button
+            key={o.key}
+            role="radio"
+            aria-checked={on}
+            onClick={() => onChange(o.key)}
+            className="m3-press"
+            style={{
+              flex: 1,
+              height: 40,
+              border: "none",
+              borderRadius: `${l}px ${r}px ${r}px ${l}px`,
+              background: on ? p.primary : p.surfaceContainerHigh,
+              color: on ? p.onPrimary : p.onSurfaceVariant,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "background 160ms, color 160ms",
+            }}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /** The AI tab of the left rail: the provider settings. The actions live with each screen on the right. */
 export function AiPanel({ p, settings, onSettings }: { p: Palette; settings: AiSettings; onSettings: (s: AiSettings) => void }) {
   const lang = useLang();
   const spec = providerSpec(settings.provider);
-  const pick = (k: Provider) => {
-    const s = providerSpec(k);
-    onSettings({ ...settings, provider: k, baseUrl: s.baseUrl, model: s.model });
-  };
+  const custom = settings.provider === "custom";
+  const pick = (k: Provider) => onSettings(switchProvider(settings, k));
   return (
     <div className="no-scrollbar" style={{ height: "100%", overflowY: "auto", padding: "12px 12px 20px" }}>
       <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.4, color: p.onSurfaceVariant, padding: "8px 6px 12px" }}>{t("aiSettings", lang)}</div>
@@ -177,13 +216,20 @@ export function AiPanel({ p, settings, onSettings }: { p: Palette; settings: AiS
             <Label p={p}>{t("aiProvider", lang)}</Label>
             <ProviderGroup value={settings.provider} onChange={pick} p={p} />
           </div>
+          {custom && (
+            <div>
+              <Label p={p}>{t("aiFormat", lang)}</Label>
+              <FormatGroup value={formatOf(settings)} onChange={(format) => onSettings({ ...settings, format })} p={p} />
+              <div style={{ fontSize: 12, lineHeight: 1.5, color: p.onSurfaceVariant, marginTop: 8, padding: "0 4px" }}>{t("aiCustomHint", lang)}</div>
+            </div>
+          )}
           <div>
             <Label p={p}>{t("aiModel", lang)}</Label>
-            <Input label={t("aiModel", lang)} value={settings.model} onChange={(model) => onSettings({ ...settings, model })} placeholder={spec.model || "model"} p={p} />
+            <Input label={t("aiModel", lang)} value={settings.model} onChange={(model) => onSettings({ ...settings, model })} placeholder={spec.model || (custom ? "llama-3.3-70b, gpt-4o, …" : "model")} p={p} />
           </div>
           <div>
             <Label p={p}>{t("aiBaseUrl", lang)}</Label>
-            <Input label={t("aiBaseUrl", lang)} value={settings.baseUrl} onChange={(baseUrl) => onSettings({ ...settings, baseUrl })} placeholder={spec.baseUrl} p={p} />
+            <Input label={t("aiBaseUrl", lang)} value={settings.baseUrl} onChange={(baseUrl) => onSettings({ ...settings, baseUrl })} placeholder={spec.baseUrl || "https://your-host/v1"} p={p} />
           </div>
           <div>
             <Label

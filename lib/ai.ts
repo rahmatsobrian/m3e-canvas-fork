@@ -8,13 +8,23 @@ import { Lang } from "./i18n";
  * prompt and a fixed JSON answer shape, and the result is only applied after the
  * author has looked at it. Coordinates are never touched by the model. */
 
-export type Provider = "claude" | "openai" | "gemini" | "deepseek";
+export type Provider = "claude" | "openai" | "gemini" | "deepseek" | "custom";
+
+/** the wire format a custom endpoint speaks */
+export type ApiFormat = "openai" | "claude";
+
+/** what the author typed for their own endpoint; kept apart so picking a preset never wipes it */
+export type CustomAi = { baseUrl: string; model: string; key: string; format: ApiFormat };
 
 export type AiSettings = {
   provider: Provider;
   baseUrl: string;
   model: string;
   key: string;
+  /** only read when provider is "custom"; presets have a fixed format */
+  format?: ApiFormat;
+  /** the saved custom endpoint while a preset is active */
+  custom?: CustomAi;
 };
 
 export const PROVIDERS: { key: Provider; label: string; baseUrl: string; model: string; keysUrl?: string }[] = [
@@ -22,7 +32,30 @@ export const PROVIDERS: { key: Provider; label: string; baseUrl: string; model: 
   { key: "claude", label: "Claude", baseUrl: "https://api.anthropic.com", model: "claude-sonnet-5", keysUrl: "https://console.anthropic.com/settings/keys" },
   { key: "gemini", label: "Gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-3.8-flash", keysUrl: "https://aistudio.google.com/apikey" },
   { key: "deepseek", label: "DeepSeek", baseUrl: "https://api.deepseek.com/v1", model: "deepseek-v4-flash", keysUrl: "https://platform.deepseek.com/api_keys" },
+  { key: "custom", label: "Custom", baseUrl: "", model: "" },
 ];
+
+export const EMPTY_CUSTOM: CustomAi = { baseUrl: "", model: "", key: "", format: "openai" };
+
+const isApiFormat = (f: unknown): f is ApiFormat => f === "openai" || f === "claude";
+
+/** the wire format a settings object speaks: presets are fixed, a custom endpoint chooses */
+export const formatOf = (s: Pick<AiSettings, "provider" | "format">): ApiFormat =>
+  s.provider === "claude" ? "claude" : s.provider === "custom" && s.format === "claude" ? "claude" : "openai";
+
+/** Switch provider without losing what was typed for the custom endpoint. */
+export function switchProvider(s: AiSettings, to: Provider): AiSettings {
+  if (to === s.provider) return s;
+  // park the custom endpoint before a preset overwrites the visible fields
+  const custom: CustomAi | undefined =
+    s.provider === "custom" ? { baseUrl: s.baseUrl, model: s.model, key: s.key, format: s.format ?? "openai" } : s.custom;
+  if (to === "custom") {
+    const c = custom ?? EMPTY_CUSTOM;
+    return { provider: "custom", baseUrl: c.baseUrl, model: c.model, key: c.key, format: c.format, custom };
+  }
+  const spec = providerSpec(to);
+  return { provider: to, baseUrl: spec.baseUrl, model: spec.model, key: s.provider === "custom" ? "" : s.key, custom };
+}
 
 export const providerSpec = (k: Provider) => PROVIDERS.find((p) => p.key === k) ?? PROVIDERS[0];
 
@@ -40,6 +73,16 @@ export function loadAiSettings(): AiSettings {
       if (typeof v.baseUrl === "string") s.baseUrl = v.baseUrl;
       if (typeof v.model === "string") s.model = v.model;
       if (typeof v.key === "string") s.key = v.key;
+      if (isApiFormat(v.format)) s.format = v.format;
+      const c = v.custom as Partial<CustomAi> | undefined;
+      if (c && typeof c === "object") {
+        s.custom = {
+          baseUrl: typeof c.baseUrl === "string" ? c.baseUrl : "",
+          model: typeof c.model === "string" ? c.model : "",
+          key: typeof c.key === "string" ? c.key : "",
+          format: isApiFormat(c.format) ? c.format : "openai",
+        };
+      }
     }
   } catch {}
   return s;
@@ -62,6 +105,12 @@ export const isSecureUrl = (u: string) => /^https:\/\//i.test(u.trim()) || isLoc
 
 const trimSlash = (u: string) => u.trim().replace(/\/+$/, "");
 
+/** A custom base URL may already be the full endpoint (…/chat/completions or …/messages); use it as typed then. */
+const endpoint = (base: string, fmt: ApiFormat): string => {
+  if (fmt === "claude") return /\/messages$/i.test(base) ? base : /\/v1$/i.test(base) ? `${base}/messages` : `${base}/v1/messages`;
+  return /\/chat\/completions$/i.test(base) ? base : `${base}/chat/completions`;
+};
+
 async function readError(res: Response): Promise<string> {
   let detail = "";
   try {
@@ -81,13 +130,14 @@ export async function complete(s: AiSettings, system: string, user: string, sign
   const model = s.model.trim();
   if (!model) throw new Error("model");
   if (!isSecureUrl(base)) throw new Error("insecure");
-  if (s.provider === "claude") {
-    const res = await fetch(`${base}/v1/messages`, {
+  const fmt = formatOf(s);
+  if (fmt === "claude") {
+    const res = await fetch(s.provider === "custom" ? endpoint(base, "claude") : `${base}/v1/messages`, {
       method: "POST",
       signal,
       headers: {
         "content-type": "application/json",
-        "x-api-key": s.key.trim(),
+        ...(s.key.trim() ? { "x-api-key": s.key.trim() } : {}),
         "anthropic-version": "2023-06-01",
         "anthropic-dangerous-direct-browser-access": "true",
       },
@@ -104,7 +154,7 @@ export async function complete(s: AiSettings, system: string, user: string, sign
   }
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (s.key.trim()) headers.authorization = `Bearer ${s.key.trim()}`;
-  const res = await fetch(`${base}/chat/completions`, {
+  const res = await fetch(s.provider === "custom" ? endpoint(base, "openai") : `${base}/chat/completions`, {
     method: "POST",
     signal,
     headers,

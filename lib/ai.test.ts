@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { complete, hasKey, isSecureUrl, type AiSettings, type Provider } from "./ai";
+import { complete, hasKey, isSecureUrl, switchProvider, type AiSettings, type Provider } from "./ai";
 
 const settings = (over: Partial<AiSettings> = {}): AiSettings =>
   ({ provider: "openai", baseUrl: "https://api.example.test", model: "test-model", key: "test-key", ...over });
@@ -132,5 +132,49 @@ describe("hasKey and isSecureUrl", () => {
     expect(isSecureUrl("http://127.0.0.1:8080/v1")).toBe(true);
     expect(isSecureUrl("http://[::1]:8080/v1")).toBe(true);
     expect(isSecureUrl("http://api.example.test/v1")).toBe(false);
+  });
+});
+
+describe("custom provider", () => {
+  const custom = (over: Partial<AiSettings> = {}) => settings({ provider: "custom", baseUrl: "https://gw.example.test/v1", format: "openai", ...over });
+
+  it("speaks openai format to <base>/chat/completions and keeps max_tokens", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ choices: [{ finish_reason: "stop", message: { content: "ok" } }] }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(complete(custom(), "s", "u")).resolves.toBe("ok");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://gw.example.test/v1/chat/completions");
+    expect(init.headers.authorization).toBe("Bearer test-key");
+    expect(JSON.parse(init.body).max_tokens).toBe(4096);
+  });
+
+  it("uses a full endpoint as typed", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ choices: [{ message: { content: "ok" } }] }));
+    vi.stubGlobal("fetch", fetchMock);
+    await complete(custom({ baseUrl: "https://gw.example.test/api/chat/completions/" }), "s", "u");
+    expect(fetchMock.mock.calls[0][0]).toBe("https://gw.example.test/api/chat/completions");
+  });
+
+  it("speaks claude format when asked", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ content: [{ type: "text", text: "hi" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(complete(custom({ format: "claude" }), "s", "u")).resolves.toBe("hi");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://gw.example.test/v1/messages");
+    expect(init.headers["x-api-key"]).toBe("test-key");
+  });
+
+  it("refuses a plain http endpoint that is not this machine", async () => {
+    await expect(complete(custom({ baseUrl: "http://gw.example.test/v1" }), "s", "u")).rejects.toThrow("insecure");
+  });
+
+  it("keeps the custom endpoint when a preset is picked and brings it back", () => {
+    const a = switchProvider(settings({ provider: "openai" }), "custom");
+    const b = switchProvider({ ...a, baseUrl: "http://localhost:11434/v1", model: "llama3", key: "", format: "openai" }, "claude");
+    expect(b.provider).toBe("claude");
+    expect(b.baseUrl).toBe("https://api.anthropic.com");
+    expect(b.key).toBe("");
+    const c = switchProvider(b, "custom");
+    expect(c).toMatchObject({ provider: "custom", baseUrl: "http://localhost:11434/v1", model: "llama3", format: "openai" });
   });
 });
