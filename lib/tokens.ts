@@ -1,18 +1,19 @@
 import type { CSSProperties } from "react";
 import { FAB_MENU_TABS, KIND_TEXT, Lang, NAV_TABS, SPLIT_MENU_TABS, TAB_LABELS, getLang, t, SELECT_OPTIONS } from "./i18n";
 import { Contrast, isLightColor, schemeFromSeed } from "./color";
+import { MIUIX_LIGHT, MIUIX_SPECS, MIUIX_KIND_LIST, MX, isMiuixKind, miuixInit, miuixScheme, miuixSize } from "./miuix";
 
 /* ---------- geometry ---------- */
-export const H = 56; // M3 medium button height (dp)
+export const H = 48; // Miuix button height: 13dp padding around a 17sp line (dp)
 
 /** The five button sizes M3 Expressive names, and what each one is made of: the height,
  *  the padding on either side, the gap between icon and label, the icon and the label.
  *  A height between two steps takes values between theirs, so the slider stays M3-shaped
  *  the whole way rather than only on the five stops. */
 export const BUTTON_SIZES = [
-  { key: "xs", h: 32, padX: 12, gap: 8, icon: 20, font: 14 },
-  { key: "s", h: 40, padX: 16, gap: 8, icon: 20, font: 14 },
-  { key: "m", h: 56, padX: 24, gap: 8, icon: 24, font: 16 },
+  { key: "xs", h: 32, padX: 12, gap: 8, icon: 18, font: 13 },
+  { key: "s", h: 40, padX: 16, gap: 8, icon: 20, font: 15 },
+  { key: "m", h: 48, padX: 16, gap: 8, icon: 24, font: 17 },
   { key: "l", h: 96, padX: 48, gap: 12, icon: 32, font: 24 },
   { key: "xl", h: 136, padX: 64, gap: 16, icon: 40, font: 32 },
 ] as const;
@@ -254,6 +255,8 @@ const ERROR = {
 
 /* presets are authored without secondary; it is derived from the seed below */
 const PRESETS: Omit<Palette, "secondary">[] = [
+  /* Miuix first: it is the scheme a new sketch starts in. Its own secondary is kept (see PALETTES). */
+  MIUIX_LIGHT,
   {
     key: "purple",
     label: "Purple",
@@ -430,7 +433,7 @@ const PRESETS: Omit<Palette, "secondary">[] = [
     ...ERROR,
   },
 ];
-export const PALETTES: Palette[] = PRESETS.map((p) => ({ ...p, secondary: schemeFromSeed(p.primary, p.label, { keepChroma: true }).secondary }));
+export const PALETTES: Palette[] = PRESETS.map((p) => (p.key === "miuix" ? { ...p, secondary: MIUIX_LIGHT.secondary } : { ...p, secondary: schemeFromSeed(p.primary, p.label, { keepChroma: true }).secondary }));
 
 /* ---------- theme: the four expressive axes ---------- */
 export type ShapeScale = "square" | "rounded" | "full";
@@ -450,7 +453,7 @@ export type Theme = {
   motion: MotionScheme;
 };
 
-export const DEFAULT_THEME: Theme = { dark: false, bothModes: false, contrast: "standard", shape: "rounded", font: "roboto", emphasized: false, motion: "standard" };
+export const DEFAULT_THEME: Theme = { dark: false, bothModes: false, contrast: "standard", shape: "rounded", font: "system", emphasized: false, motion: "standard" };
 
 /** a stored theme with any missing or unknown field replaced by its default */
 export function normalizeTheme(t: Partial<Theme> | undefined): Theme {
@@ -537,6 +540,8 @@ export function scaleR(r: number): number {
  *  other contrast levels are generated from the same seed. */
 export function paletteOf(key: string, custom?: Palette | null, theme?: Theme): Palette {
   const base = (key === "custom" && custom) || PALETTES.find((p) => p.key === key) || PALETTES[0];
+  /* Miuix ships its own dark scheme and has no contrast levels: it is not generated from a seed */
+  if (base.key === "miuix") return miuixScheme(!!theme?.dark);
   if (!theme || (!theme.dark && theme.contrast === "standard")) {
     /* Saved custom schemes may predate the secondary role. */
     return base.secondary ? base : { ...base, secondary: schemeFromSeed(base.seed ?? base.primary).secondary };
@@ -614,7 +619,25 @@ export type Kind =
   | "radio"
   | "carousel"
   | "datePicker"
-  | "timePicker";
+  | "timePicker"
+  | "smallTitle"
+  | "badge"
+  | "breadcrumbBar"
+  | "tooltip"
+  | "numberPicker"
+  | "pullToRefresh"
+  | "colorPalette"
+  | "colorPicker"
+  | "arrowPreference"
+  | "switchPreference"
+  | "checkboxPreference"
+  | "radioPreference"
+  | "sliderPreference"
+  | "rangeSliderPreference"
+  | "dropdownPreference"
+  | "spinnerPreference"
+  | "dropdownMenu"
+  | "cascadingMenu";
 
 /** how a carousel arranges its items: M3's four layouts */
 export type CarouselLayout = "multiBrowse" | "uncontained" | "hero" | "fullScreen";
@@ -1006,7 +1029,7 @@ export const KIND_SPEC: Record<Kind, KindSpec> = {
     size: { min: BUTTON_H_MIN, max: BUTTON_H_MAX, step: 4, icon: "open_in_full", presets: BUTTON_SIZES.map((b) => b.h) },
     defLabel: "",
     defIcon: "favorite",
-    defSize: H,
+    defSize: MX.iconButton,
     defVariant: "tonal",
   },
   fab: {
@@ -1014,9 +1037,9 @@ export const KIND_SPEC: Record<Kind, KindSpec> = {
     noun: "FAB（フローティングボタン）",
     category: "actions",
     paletteIcon: "add_circle",
-    w: 56,
-    h: 56,
-    radius: 16,
+    w: 60,
+    h: 60,
+    radius: 30,
     hasVariant: true,
     hasLabel: false,
     hasSupporting: false,
@@ -1024,7 +1047,7 @@ export const KIND_SPEC: Record<Kind, KindSpec> = {
     size: { min: FAB_H_MIN, max: FAB_H_MAX, step: 4, icon: "open_in_full", presets: FAB_SIZES.map((f) => f.d) },
     defLabel: "",
     defIcon: "edit",
-    defSize: 56,
+    defSize: 60,
     defVariant: "tonal",
   },
   extendedFab: {
@@ -1587,6 +1610,7 @@ export const KIND_SPEC: Record<Kind, KindSpec> = {
     defLabel: "選択肢",
     defIcon: null,
   },
+  ...MIUIX_SPECS,
 };
 
 export const KIND_ORDER: Kind[] = [
@@ -1626,6 +1650,7 @@ export const KIND_ORDER: Kind[] = [
   "loadingIndicator",
   "linearProgress",
   "circularProgress",
+  ...MIUIX_KIND_LIST,
 ];
 
 /* ---------- screen data ---------- */
@@ -1668,6 +1693,10 @@ export type Item = {
   /** a switch whose handle stays plain when on, without the check icon */
   /** 0..100 for sliders and determinate progress; undefined = indeterminate */
   value?: number;
+  /** range sliders: the upper end of the range (value is the lower end) */
+  value2?: number;
+  /** preference rows: the value written at the trailing end */
+  trailing?: string;
   wavy?: boolean;
   /** Undefined retains the original rail; false/true select the collapsed/expanded expressive rail. */
   railExpanded?: boolean;
@@ -1779,7 +1808,7 @@ export type Action = { to: string; transition: Transition; /** the address a `LI
 /** the height a button is drawn at: the author's, else M3's medium button. An icon button has
  *  only the one measure -- it is a circle -- so its diameter is its height. */
 export const buttonHeightOf = (it: Item) =>
-  clamp(Math.round(it.kind === "iconButton" ? (it.size ?? H) : (it.size2 ?? H)), BUTTON_H_MIN, BUTTON_H_MAX);
+  clamp(Math.round(it.kind === "iconButton" ? (it.size ?? MX.iconButton) : (it.size2 ?? H)), BUTTON_H_MIN, BUTTON_H_MAX);
 /** the height a chip is drawn at: the M3 32dp one unless the author set another */
 export const chipHeightOf = (it: Item) => clamp(Math.round(it.size2 ?? CHIP_H_MIN), CHIP_H_MIN, CHIP_H_MAX);
 
@@ -2486,6 +2515,7 @@ export function makeItem(kind: Kind): Item {
   }
   if (kind === "tabs" || kind === "fabMenu" || kind === "select" || kind === "splitButton") it.tabs = defaultTabsFor(kind);
   if (kind === "toolbar") it.tabs = defaultTabsFor(kind).slice(0, 4);
+  if (isMiuixKind(kind)) Object.assign(it, miuixInit(kind, getLang()));
   return it;
 }
 
@@ -2508,6 +2538,7 @@ export const progressThickness = (it: Item): number => {
 };
 
 export function sizeOf(it: Item, widths: Record<string, number>) {
+  if (isMiuixKind(it.kind)) return miuixSize(it, widths);
   const s = KIND_SPEC[it.kind];
   const n = it.size ?? s.defSize ?? s.w;
   switch (it.kind) {
@@ -2595,7 +2626,8 @@ export function baseRadii(it: Item): Radii {
   switch (it.kind) {
     /* a button stays fully round whatever height it is given */
     case "button":
-      return uniformRadii(scaleR(buttonHeightOf(it) / 2));
+      /* Miuix buttons are rounded rectangles (16dp), not pills; taller ones keep the same proportion */
+      return uniformRadii(scaleR(Math.min(buttonHeightOf(it) / 2, Math.round(MX.buttonR * Math.max(1, buttonHeightOf(it) / 48)))));
     /* an inline time picker is no box of its own: its fields carry their own corners */
     case "timePicker":
       return uniformRadii(timeInlineOf(it) ? 0 : scaleR(s.radius));
@@ -2621,14 +2653,17 @@ export function baseRadii(it: Item): Radii {
       const r = it.radiusBottom ?? modalRadius;
       return { tl: l, bl: l, tr: r, br: r };
     }
+    /* Miuix: a FAB is a circle, and an extended one a pill */
     case "fab":
-      return uniformRadii(scaleR(fabCornerRadius(it.size ?? 56)));
+      return uniformRadii((it.size ?? MX.fab) / 2);
     case "extendedFab":
-      return uniformRadii(scaleR(extendedFabMetrics(extendedFabHeight(it)).radius));
+      return uniformRadii(extendedFabHeight(it) / 2);
+    case "toolbar":
+      return uniformRadii(MX.toolbarR);
     case "fabMenu":
       return uniformRadii(0);
     case "iconButton":
-      return uniformRadii(scaleR((it.size ?? 48) / 2));
+      return uniformRadii(scaleR((it.size ?? MX.iconButton) / 2));
     case "circularProgress":
     case "loadingIndicator":
       return uniformRadii((it.size ?? 48) / 2);

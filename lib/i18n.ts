@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import { MIUIX_KIND_TEXT } from "./miuix";
 
 export type Lang = "ja" | "en" | "zh" | "ko";
 export const LANGS: { key: Lang; label: string }[] = [
@@ -742,6 +743,9 @@ export const KIND_TEXT: Record<
     timePicker: { noun: "시간 선택기" },
   },
 };
+
+/* Miuix parts: their nouns and default texts join the table */
+for (const l of ["ja", "en", "zh", "ko"] as const) Object.assign(KIND_TEXT[l], MIUIX_KIND_TEXT[l]);
 
 /** default labels of a tab row */
 export const TAB_LABELS: Record<Lang, string[]> = {

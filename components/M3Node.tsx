@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { MX, isMiuixKind } from "@/lib/miuix";
+import { MiuixBody } from "./MiuixParts";
 import {
   FAB_MENU_CLOSE,
   FAB_MENU_GAP,
@@ -335,47 +337,41 @@ function SwitchContent({ item, p }: { item: Item; p: Palette }) {
   const hasLabel = item.label.trim().length > 0;
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 14, height: H - 8, whiteSpace: "nowrap", width: item.size ? "100%" : undefined, justifyContent: item.size ? "space-between" : undefined }}>
-      {hasLabel && <span style={{ fontSize: 16, color: p.onSurface, overflow: "hidden", textOverflow: "ellipsis" }}>{item.label}</span>}
+      {hasLabel && <span style={{ fontSize: 17, color: p.onSurface, overflow: "hidden", textOverflow: "ellipsis" }}>{item.label}</span>}
       <SwitchControl on={!!item.checked} p={p} />
     </span>
   );
 }
 
-/** the M3 switch track and handle, 52 × 32 */
+/** the Miuix switch: a 49 × 28 pill with a 20dp white thumb that slides from 4dp to 25dp */
 function SwitchControl({ on, p }: { on: boolean; p: Palette }) {
   return (
     <span
+      style={{
+        position: "relative",
+        width: MX.switchW,
+        height: MX.switchH,
+        borderRadius: MX.switchH / 2,
+        background: on ? p.primary : p.secondaryContainer,
+        boxSizing: "border-box",
+        flex: "0 0 auto",
+        transition: "background 200ms",
+      }}
+    >
+      <span
         style={{
-          position: "relative",
-          width: 52,
-          height: 32,
-          borderRadius: 16,
-          background: on ? p.primary : p.surfaceContainerHighest,
-          border: on ? "2px solid transparent" : `2px solid ${p.outline}`,
-          boxSizing: "border-box",
-          flex: "0 0 auto",
-          transition: "background 160ms",
+          position: "absolute",
+          top: (MX.switchH - MX.switchThumb) / 2,
+          left: on ? 25 : 4,
+          width: MX.switchThumb,
+          height: MX.switchThumb,
+          borderRadius: MX.switchThumb / 2,
+          background: "#FFFFFF",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          transition: "left 200ms cubic-bezier(0.2, 0, 0, 1)",
         }}
-      >
-        <span
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: on ? 22 : 4,
-            width: on ? 24 : 16,
-            height: on ? 24 : 16,
-            marginTop: on ? -12 : -8,
-            borderRadius: 12,
-            background: on ? p.onPrimary : p.outline,
-            display: "grid",
-            placeItems: "center",
-            color: p.onPrimaryContainer,
-            transition: "left 160ms, width 160ms, height 160ms",
-          }}
-        >
-          {on && <Icon name="check" size={16} weight={600} />}
-        </span>
-      </span>
+      />
+    </span>
   );
 }
 
@@ -383,25 +379,25 @@ function CheckboxContent({ item, p }: { item: Item; p: Palette }) {
   const on = !!item.checked;
   const hasLabel = item.label.trim().length > 0;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, height: 40, whiteSpace: "nowrap" }}>
-      <span style={{ width: 40, height: 40, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 40, whiteSpace: "nowrap" }}>
+      <span style={{ width: MX.choice, height: MX.choice, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
         <span
           style={{
-            width: 18,
-            height: 18,
-            borderRadius: 3,
+            width: MX.choice,
+            height: MX.choice,
+            borderRadius: MX.choice / 2,
             boxSizing: "border-box",
-            border: on ? "none" : `2px solid ${p.onSurfaceVariant}`,
+            border: on ? "none" : `1.5px solid ${p.outline}`,
             background: on ? p.primary : "transparent",
             color: p.onPrimary,
             display: "grid",
             placeItems: "center",
           }}
         >
-          {on && <Icon name="check" size={16} weight={700} />}
+          {on && <Icon name="check" size={18} weight={700} />}
         </span>
       </span>
-      {hasLabel && <span style={{ fontSize: 16, color: p.onSurface, paddingRight: 8 }}>{item.label}</span>}
+      {hasLabel && <span style={{ fontSize: 17, color: p.onSurface, paddingRight: 8 }}>{item.label}</span>}
     </span>
   );
 }
@@ -606,23 +602,22 @@ function RadioContent({ item, p }: { item: Item; p: Palette }) {
   const on = !!item.checked;
   const hasLabel = item.label.trim().length > 0;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, height: 40, whiteSpace: "nowrap" }}>
-      <span style={{ width: 40, height: 40, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 40, whiteSpace: "nowrap" }}>
+      <span style={{ width: MX.choice, height: MX.choice, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
         <span
           style={{
-            width: 20,
-            height: 20,
-            borderRadius: 10,
+            width: MX.choice,
+            height: MX.choice,
+            borderRadius: MX.choice / 2,
             boxSizing: "border-box",
-            border: `2px solid ${on ? p.primary : p.onSurfaceVariant}`,
+            border: `${on ? 6 : 1.5}px solid ${on ? p.primary : p.outline}`,
+            background: on ? p.onPrimary : "transparent",
             display: "grid",
             placeItems: "center",
           }}
-        >
-          {on && <span style={{ width: 10, height: 10, borderRadius: 5, background: p.primary }} />}
-        </span>
+        />
       </span>
-      {hasLabel && <span style={{ fontSize: 16, color: p.onSurface, paddingRight: 8 }}>{item.label}</span>}
+      {hasLabel && <span style={{ fontSize: 17, color: p.onSurface, paddingRight: 8 }}>{item.label}</span>}
     </span>
   );
 }
@@ -941,19 +936,19 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
             position: "relative",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 4px", height: 64, flex: "0 0 auto" }}>
-            <div style={{ width: 48, height: 48, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 12px", height: 56, flex: "0 0 auto" }}>
+            <div style={{ width: 40, height: 40, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
               {item.icon && <Icon name={item.icon} size={24} color={p.onSurface} />}
             </div>
-            <div className="m3-size-ease" style={{ flex: 1, minWidth: 0, fontSize: tall ? 0 : font, opacity: tall ? 0 : 1, fontWeight: w(400, 600), color: p.onSurface, transition: "opacity 200ms", ...ellipsis }}>
+            <div className="m3-size-ease" style={{ flex: 1, minWidth: 0, textAlign: "center", fontSize: tall ? 0 : 18, opacity: tall ? 0 : 1, fontWeight: w(500, 700), color: p.onSurface, transition: "opacity 200ms", ...ellipsis }}>
               {item.label}
             </div>
-            <div style={{ width: 48, height: 48, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
-              {item.icon2 && <Icon name={item.icon2} size={24} color={p.onSurfaceVariant} />}
+            <div style={{ width: 40, height: 40, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
+              {item.icon2 && <Icon name={item.icon2} size={24} color={p.onSurface} />}
             </div>
           </div>
           {tall && (
-            <div className="m3-size-ease" style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-end", padding: "0 16px 24px", fontSize: font, lineHeight: 1.2, fontWeight: w(400, 600), color: p.onSurface, ...ellipsis }}>
+            <div className="m3-size-ease" style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-end", padding: "0 26px 12px", fontSize: Math.max(font, 32), lineHeight: 1.2, fontWeight: w(500, 700), color: p.onSurface, ...ellipsis }}>
               {item.label}
             </div>
           )}
@@ -963,12 +958,12 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
 
     case "searchBar":
       return (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 16px", height: "100%" }}>
-          {item.icon && <Icon name={item.icon} size={24} color={p.onSurface} />}
-          <div style={{ flex: 1, minWidth: 0, fontSize: 16, color: p.onSurfaceVariant, ...ellipsis }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 16px", height: "100%" }}>
+          {item.icon && <Icon name={item.icon} size={20} color={p.onSurfaceVariant} />}
+          <div style={{ flex: 1, minWidth: 0, fontSize: 17, color: p.onSurfaceVariant, ...ellipsis }}>
             {item.label}
           </div>
-          {item.icon2 && <Icon name={item.icon2} size={24} color={p.onSurfaceVariant} />}
+          {item.icon2 && <Icon name={item.icon2} size={20} color={p.onSurfaceVariant} />}
         </div>
       );
 
@@ -1009,10 +1004,10 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
         /* the column may shrink under a large picture: what does not fit is clipped, never pushed out of the card */
         <div style={{ flex: 1, minWidth: 0, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column", gap: CARD_TEXT_GAP, justifyContent, alignItems, textAlign }}>
           {hasLabel && (
-            <div style={{ fontSize: 16, fontWeight: w(600, 700), color: ink, maxWidth: "100%", ...ellipsis }}>{item.label}</div>
+            <div style={{ fontSize: 17, fontWeight: w(600, 700), color: ink, maxWidth: "100%", ...ellipsis }}>{item.label}</div>
           )}
           {hasSupporting && (
-            <div style={{ fontSize: 13, lineHeight: 1.5, color: body.color, opacity: body.opacity, overflow: "hidden" }}>
+            <div style={{ fontSize: 14, lineHeight: 1.5, color: body.color, opacity: body.opacity, overflow: "hidden" }}>
               {item.supporting}
             </div>
           )}
@@ -1055,7 +1050,7 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
     }
 
     case "listItem": {
-      const iconBg = item.iconFill === "none" ? null : (item.iconFill ?? "primaryContainer");
+      const iconBg = item.iconFill === undefined || item.iconFill === "none" ? null : item.iconFill;
       return (
         <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "0 16px", height: "100%" }}>
           {item.icon && (
@@ -1065,7 +1060,7 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
                 height: 40,
                 borderRadius: 20,
                 background: iconBg ? p[iconBg] : "transparent",
-                color: iconBg ? onToken(iconBg, p) : onToken(item.fill ?? "surfaceContainerLow", p),
+                color: iconBg ? onToken(iconBg, p) : p.primary,
                 display: "grid",
                 placeItems: "center",
                 flex: "0 0 auto",
@@ -1075,67 +1070,50 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
             </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            {hasLabel && <div style={{ fontSize: 16, color: p.onSurface, ...ellipsis }}>{item.label}</div>}
+            {hasLabel && <div style={{ fontSize: 17, color: p.onSurface, ...ellipsis }}>{item.label}</div>}
             {hasSupporting && (
-              <div style={{ fontSize: 13, color: p.onSurfaceVariant, ...ellipsis }}>{item.supporting}</div>
+              <div style={{ fontSize: 14, color: p.onSurfaceVariant, ...ellipsis }}>{item.supporting}</div>
             )}
           </div>
-          {item.switch ? <SwitchControl on={!!item.checked} p={p} /> : item.icon2 && <Icon name={item.icon2} size={22} color={p.onSurfaceVariant} />}
+          {item.switch ? <SwitchControl on={!!item.checked} p={p} /> : item.icon2 && <Icon name={item.icon2} size={20} color={p.outline} />}
         </div>
       );
     }
 
     case "dialog":
+      /* Miuix OverlayDialog: a centred title and summary over two full-width rounded buttons */
       return (
-        <div
-          style={{
-            padding: 24,
-            height: "100%",
-            boxSizing: "border-box",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
+        <div style={{ padding: 24, height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 12 }}>
           {item.icon && (
             <div style={{ textAlign: "center", color: p.primary }}>
               <Icon name={item.icon} size={24} />
             </div>
           )}
-          {hasLabel && (
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: w(400, 600),
-                color: p.onSurface,
-                textAlign: item.icon ? "center" : "left",
-                ...ellipsis,
-              }}
-            >
-              {item.label}
-            </div>
-          )}
+          {hasLabel && <div style={{ fontSize: 20, fontWeight: w(500, 700), color: p.onSurface, textAlign: "center", ...ellipsis }}>{item.label}</div>}
           {hasSupporting && (
-            <div style={{ fontSize: 14, lineHeight: 1.5, color: p.onSurfaceVariant, flex: 1, overflow: "hidden" }}>
+            <div style={{ fontSize: 15, lineHeight: 1.5, color: p.onSurfaceVariant, textAlign: "center", flex: 1, overflow: "hidden" }}>
               {item.supporting}
             </div>
           )}
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-            {[t("cancel", lang), t("ok", lang)].map((t, i) => (
+          <div style={{ display: "flex", gap: 12 }}>
+            {[t("cancel", lang), t("ok", lang)].map((label, i) => (
               <span
-                key={t}
+                key={label}
                 data-act={i ? "ok" : "cancel"}
                 style={{
-                  padding: "0 12px",
-                  height: 40,
+                  flex: 1,
+                  height: 48,
+                  borderRadius: scaleR(MX.buttonR),
                   display: "inline-flex",
                   alignItems: "center",
-                  color: p.primary,
-                  fontSize: 14,
+                  justifyContent: "center",
+                  background: i === 1 ? p.primary : p.secondaryContainer,
+                  color: i === 1 ? p.onPrimary : p.onSurface,
+                  fontSize: 17,
                   fontWeight: 500,
                 }}
               >
-                {t}
+                {label}
               </span>
             ))}
           </div>
@@ -1145,7 +1123,7 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
     case "snackbar":
       return (
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 8px 0 16px", height: "100%" }}>
-          <div style={{ flex: 1, minWidth: 0, fontSize: 14, color: p.inverseOnSurface, ...ellipsis }}>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 15, color: p.inverseOnSurface, ...ellipsis }}>
             {item.label}
           </div>
           {hasSupporting && (
@@ -1185,7 +1163,7 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
                 top: filled ? 8 : -8,
                 fontSize: 12,
                 lineHeight: "16px",
-                color: p.primary,
+                color: p.onSurfaceVariant,
                 background: filled ? "transparent" : p.surface,
                 padding: filled ? 0 : "0 4px",
                 marginLeft: filled ? 0 : -4,
@@ -1193,18 +1171,6 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
             >
               {item.label}
             </span>
-          )}
-          {filled && (
-            <span
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: 2,
-                background: p.primary,
-              }}
-            />
           )}
           {hasSupporting && (
             <span
@@ -1237,7 +1203,7 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
             <span style={{ flex: 1, minWidth: 0, fontSize: 16, color: value ? p.onSurface : p.onSurfaceVariant, paddingTop: value && filled ? 16 : 0, ...ellipsis }}>
               {value ?? item.label}
             </span>
-            <Icon name="arrow_drop_down" size={24} color={p.onSurfaceVariant} />
+            <Icon name="unfold_more" size={22} color={p.onSurfaceVariant} />
           </div>
           {value && hasLabel && (
             <span
@@ -1256,7 +1222,6 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
               {item.label}
             </span>
           )}
-          {filled && <span style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 1, background: p.onSurfaceVariant }} />}
           {hasSupporting && (
             <span style={{ position: "absolute", left: 16, top: "100%", marginTop: 4, fontSize: 12, color: p.onSurfaceVariant, whiteSpace: "nowrap" }}>
               {item.supporting}
@@ -1267,53 +1232,26 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
     }
 
     case "slider": {
+      /* Miuix Slider: a 28dp-tall fully rounded track, primary up to the value, with a round white handle */
       const v = Math.min(100, Math.max(0, item.value ?? 40)) / 100;
       const w = item.size ?? 280;
-      const handleX = 2 + (w - 4) * v;
+      const th = MX.sliderH;
+      const handleX = th / 2 + (w - th) * v;
       return (
-        <div style={{ position: "relative", height: "100%" }}>
+        <div style={{ position: "relative", height: "100%", display: "flex", alignItems: "center" }}>
+          <div style={{ position: "absolute", left: 0, right: 0, height: th, borderRadius: th / 2, background: p.secondaryContainer, overflow: "hidden" }}>
+            <div style={{ width: handleX, height: "100%", background: p.primary }} />
+          </div>
           <div
             style={{
               position: "absolute",
-              left: 0,
-              width: Math.max(0, handleX - 8),
-              top: 14,
-              height: 16,
-              borderRadius: "8px 2px 2px 8px",
-              background: p.primary,
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              left: handleX + 8,
-              right: 0,
-              top: 14,
-              height: 16,
-              borderRadius: "2px 8px 8px 2px",
-              background: p.secondaryContainer,
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 6,
-              top: 20,
-              width: 4,
-              height: 4,
-              borderRadius: 2,
-              background: p.onSecondaryContainer,
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              left: handleX - 2,
-              top: 0,
-              width: 4,
-              height: 44,
-              borderRadius: 2,
-              background: p.primary,
+              left: handleX - th / 2,
+              width: th,
+              height: th,
+              borderRadius: th / 2,
+              background: "#FFFFFF",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.28)",
+              boxSizing: "border-box",
             }}
           />
         </div>
@@ -1401,7 +1339,7 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
     case "divider":
       return (
         <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <div style={{ width: "100%", height: 1, background: p.outlineVariant }} />
+          <div style={{ width: "100%", height: 0.75, background: p.outlineVariant }} />
         </div>
       );
 
@@ -1426,11 +1364,11 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
           {tabs.map((tab, i) => {
             const on = i === Math.min(item.selected ?? 0, Math.max(0, tabs.length - 1));
             return <div key={i} className="m3-rail-geometry" style={{ position: "absolute", left: rail.inset, top: rail.top + i * (rail.itemHeight + rail.gap), width: rail.width - rail.inset * 2, height: rail.itemHeight }}>
-              <div className="m3-rail-geometry" style={{ position: "absolute", left: expanded ? 0 : 8, top: 0, width: expanded ? rail.width - rail.inset * 2 : 56, height: expanded ? 56 : 32, borderRadius: expanded ? 28 : 16, background: on ? p.secondaryContainer : "transparent" }} />
-              <div className="m3-rail-geometry" style={{ position: "absolute", left: 0, top: 0, width: 24, height: 24, transform: `translate(${expanded ? 16 : 24}px, ${expanded ? 16 : 4}px)`, color: on ? p.onSecondaryContainer : p.onSurfaceVariant }}>
+              <div className="m3-rail-geometry" style={{ position: "absolute", left: expanded ? 0 : 8, top: 0, width: expanded ? rail.width - rail.inset * 2 : 56, height: expanded ? 56 : 32, borderRadius: expanded ? MX.buttonR : 16, background: on ? p.primaryContainer : "transparent" }} />
+              <div className="m3-rail-geometry" style={{ position: "absolute", left: 0, top: 0, width: 24, height: 24, transform: `translate(${expanded ? 16 : 24}px, ${expanded ? 16 : 4}px)`, color: on ? p.primary : p.onSurfaceVariant }}>
                 {tab.icon && <Icon name={tab.icon} size={24} fill={on} />}
               </div>
-              {tab.label.trim() && <span className="m3-rail-geometry" style={{ position: "absolute", left: expanded ? 48 : 0, top: expanded ? 18 : 36, width: expanded ? rail.width - 88 : 72, textAlign: expanded ? "left" : "center", fontSize: expanded ? 14 : 12, lineHeight: "20px", fontWeight: on ? w(600, 700) : w(400, 500), color: on ? railSelectedLabelColor(p, expanded) : p.onSurfaceVariant, ...ellipsis }}>{tab.label}</span>}
+              {tab.label.trim() && <span className="m3-rail-geometry" style={{ position: "absolute", left: expanded ? 48 : 0, top: expanded ? 18 : 36, width: expanded ? rail.width - 88 : 72, textAlign: expanded ? "left" : "center", fontSize: expanded ? 14 : 12, lineHeight: "20px", fontWeight: on ? w(600, 700) : w(400, 500), color: on ? p.primary : p.onSurfaceVariant, ...ellipsis }}>{tab.label}</span>}
             </div>;
           })}
         </div>
@@ -1468,22 +1406,20 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
                   style={{
                     width: 56,
                     height: 32,
-                    borderRadius: scaleR(16),
                     display: "grid",
                     placeItems: "center",
-                    background: on ? p.secondaryContainer : "transparent",
-                    color: on ? p.onSecondaryContainer : p.onSurfaceVariant,
-                    transition: "background 160ms, color 160ms",
+                    color: on ? p.primary : p.onSurfaceVariant,
+                    transition: "color 160ms",
                   }}
                 >
-                  {t.icon && <Icon name={t.icon} size={22} fill={on} />}
+                  {t.icon && <Icon name={t.icon} size={MX.navIcon} fill={on} />}
                 </div>
                 {withLabel && (
                   <span
                     style={{
-                      fontSize: 11,
-                      fontWeight: on ? w(600, 700) : w(400, 500),
-                      color: on ? p.onSurface : p.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: on ? w(500, 700) : w(400, 500),
+                      color: on ? p.primary : p.onSurfaceVariant,
                       maxWidth: "100%",
                       ...ellipsis,
                     }}
@@ -1531,22 +1467,20 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
                   style={{
                     width: 56,
                     height: 32,
-                    borderRadius: scaleR(16),
                     display: "grid",
                     placeItems: "center",
-                    background: on ? p.secondaryContainer : "transparent",
-                    color: on ? p.onSecondaryContainer : p.onSurfaceVariant,
-                    transition: "background 160ms, color 160ms",
+                    color: on ? p.primary : p.onSurfaceVariant,
+                    transition: "color 160ms",
                   }}
                 >
-                  {t.icon && <Icon name={t.icon} size={22} fill={on} />}
+                  {t.icon && <Icon name={t.icon} size={MX.navIcon} fill={on} />}
                 </div>
                 {withLabel && (
                   <span
                     style={{
-                      fontSize: 11,
-                      fontWeight: on ? w(600, 700) : w(400, 500),
-                      color: on ? p.onSurface : p.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: on ? w(500, 700) : w(400, 500),
+                      color: on ? p.primary : p.onSurfaceVariant,
                       maxWidth: "100%",
                       ...ellipsis,
                     }}
@@ -1604,7 +1538,7 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
                 borderRadius: scaleR(24),
                 display: "grid",
                 placeItems: "center",
-                color: vibrant ? p.onPrimaryContainer : p.onSurfaceVariant,
+                color: vibrant ? p.onPrimaryContainer : p.onSurface,
                 flex: "0 0 auto",
               }}
             >
@@ -1634,42 +1568,35 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "flex-end",
+                  justifyContent: "center",
                   position: "relative",
-                  padding: "0 8px",
+                  padding: "0 4px",
                 }}
               >
                 <span
                   style={{
-                    fontSize: 14,
-                    fontWeight: w(500, 700),
-                    color: on ? p.primary : p.onSurfaceVariant,
-                    padding: "0 4px 14px",
+                    alignSelf: "center",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: MX.tabH - 8,
+                    minWidth: 0,
                     maxWidth: "100%",
+                    padding: "0 14px",
+                    borderRadius: scaleR(12),
+                    fontSize: 15,
+                    fontWeight: w(500, 700),
+                    background: on ? p.primaryContainer : "transparent",
+                    color: on ? p.primary : p.onSurfaceVariant,
+                    transition: "background 160ms, color 160ms",
                     ...ellipsis,
                   }}
                 >
                   {tab.label}
                 </span>
-                {on && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: "50%",
-                      bottom: 0,
-                      transform: "translateX(-50%)",
-                      width: `calc(100% - 24px)`,
-                      height: 3,
-                      borderTopLeftRadius: 3,
-                      borderTopRightRadius: 3,
-                      background: p.primary,
-                    }}
-                  />
-                )}
               </div>
             );
           })}
-          <span style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 1, background: p.outlineVariant }} />
         </div>
       );
     }
@@ -1686,6 +1613,8 @@ function Body({ item, p, tabScroll, menuShown }: { item: Item; p: Palette; tabSc
       );
     }
   }
+  /* the parts Miuix has and M3 does not */
+  if (isMiuixKind(item.kind)) return <MiuixBody item={item} p={p} />;
   return null;
 }
 
@@ -1730,23 +1659,46 @@ export function boxStyle(item: Item, p: Palette): React.CSSProperties {
     case "toolbar":
       return item.variant === "filled"
         ? { background: p.primaryContainer, border: "none", color: p.onPrimaryContainer }
-        : { background: p.surfaceContainer, border: "none", color: p.onSurfaceVariant };
+        : { background: p.surfaceContainerLow, border: `0.75px solid ${p.outlineVariant}`, color: p.onSurface };
     case "tabs":
-      return { background: p.surface, border: "none", color: p.onSurface };
+      return { background: "transparent", border: "none", color: p.onSurface };
     case "searchBar":
       return item.variant === "outlined"
         ? { background: p.surface, border: `1px solid ${p.outline}`, color: p.onSurface }
         : { background: p.surfaceContainerHigh, border: "none", color: p.onSurface };
     case "dialog":
-      return { background: p.surfaceContainerHigh, border: "none", color: p.onSurface };
+      return { background: p.surfaceContainerLow, border: "none", color: p.onSurface };
+    /* Miuix parts: the ones that are a line of text or a bare control paint no box; rows, pickers and popups are cards */
+    case "smallTitle":
+    case "breadcrumbBar":
+    case "pullToRefresh":
+    case "numberPicker":
+      return { background: "transparent", border: "none", color: p.onSurface };
+    case "badge":
+      return { background: p.error, border: "none", color: p.onError };
+    case "tooltip":
+    case "dropdownMenu":
+    case "cascadingMenu":
+      return { background: p.surfaceContainerLow, border: `0.75px solid ${p.outlineVariant}`, color: p.onSurface };
+    case "arrowPreference":
+    case "switchPreference":
+    case "checkboxPreference":
+    case "radioPreference":
+    case "sliderPreference":
+    case "rangeSliderPreference":
+    case "dropdownPreference":
+    case "spinnerPreference":
+    case "colorPalette":
+    case "colorPicker":
+      return { background: p.surfaceContainerLow, border: "none", color: p.onSurface };
     case "datePicker":
       /* typed in, a date is a field on the screen rather than a surface over it */
       return dateLayoutOf(item) === "input"
         ? { background: "transparent", border: "none", color: p.onSurface }
-        : { background: p.surfaceContainerHigh, border: "none", color: p.onSurface };
+        : { background: p.surfaceContainerLow, border: "none", color: p.onSurface };
     case "timePicker":
       /* an inline picker is part of the page; the others are dialogs over it */
-      return timeInlineOf(item) ? { background: "transparent", border: "none", color: p.onSurface } : { background: p.surfaceContainerHigh, border: "none", color: p.onSurface };
+      return timeInlineOf(item) ? { background: "transparent", border: "none", color: p.onSurface } : { background: p.surfaceContainerLow, border: "none", color: p.onSurface };
     case "snackbar":
       return { background: p.inverseSurface, border: "none", color: p.inverseOnSurface };
     case "image":
@@ -1770,22 +1722,26 @@ function shadowOf(item: Item): string {
       return item.railModal && item.railExpanded ? "0 2px 6px rgba(0,0,0,0.16), 0 1px 2px rgba(0,0,0,0.10)" : "none";
     case "button":
     case "iconButton":
-    case "extendedFab":
       return variantShadow(item.variant);
     case "fab":
-      return "0 3px 8px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12)";
+    case "extendedFab":
+      return "0 4px 10px rgba(0,0,0,0.16)";
     case "card":
       return item.variant === "elevated" ? "0 1px 3px rgba(0,0,0,0.20), 0 2px 6px rgba(0,0,0,0.10)" : "none";
     case "dialog":
       return "0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)";
+    case "tooltip":
+    case "dropdownMenu":
+    case "cascadingMenu":
+      return "0 6px 20px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.08)";
     case "timePicker":
       return timeInlineOf(item) ? "none" : "0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)";
     case "datePicker":
       return dateLayoutOf(item) === "input" ? "none" : "0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)";
     case "snackbar":
-      return "0 3px 8px rgba(0,0,0,0.18)";
+      return "0 4px 10px rgba(0,0,0,0.16)";
     case "toolbar":
-      return "0 2px 6px rgba(0,0,0,0.14), 0 1px 2px rgba(0,0,0,0.10)";
+      return "0 4px 10px rgba(0,0,0,0.12)";
     default:
       return "none";
   }

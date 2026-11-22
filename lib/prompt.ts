@@ -1,5 +1,6 @@
 import { KIND_TEXT, Lang, SWIPE_TEXT, TRANSITION_TEXT, getLang } from "./i18n";
 import { constrainModalRails } from "./rail";
+import { MIUIX_MAPPING, miuixDescribe, miuixNote } from "./miuix";
 import {
   CONTENT_W,
   Place,
@@ -430,7 +431,7 @@ function itemJa(it: Item): string {
     case "radio":
       return `${q(it.label)}のラジオボタン（初期状態は${it.checked ? "選択" : "未選択"}）`;
     default:
-      return noun;
+      return miuixDescribe(it, "ja") ?? noun;
   }
 }
 
@@ -527,7 +528,7 @@ function itemEn(it: Item): string {
     case "radio":
       return `a radio button ${q(it.label)} (initially ${it.checked ? "selected" : "unselected"})`;
     default:
-      return noun;
+      return miuixDescribe(it, "en") ?? noun;
   }
 }
 
@@ -624,7 +625,7 @@ function itemZh(it: Item): string {
     case "radio":
       return `${q(it.label)}单选按钮（初始状态为${it.checked ? "选中" : "未选中"}）`;
     default:
-      return noun;
+      return miuixDescribe(it, "zh") ?? noun;
   }
 }
 
@@ -691,7 +692,7 @@ function itemKo(it: Item): string {
       return `${labels.join(", ")}의 탭 ${labels.length}개(${selectedText(it, "ko")}${isScrollableTabs(it) ? ", 가로로 스크롤되는 탭" : ""})`;
     }
     case "radio": return `${q(it.label)} 라디오 버튼(초기 상태 ${it.checked ? "선택됨" : "선택 안 됨"})`;
-    default: return noun;
+    default: return miuixDescribe(it, "ko") ?? noun;
   }
 }
 
@@ -1573,7 +1574,7 @@ const sizeLabel = (f: Frame, vp: Viewport, lang: Lang): string | undefined => {
 const PH = {
   ja: {
     screen: "画面",
-    intro: (title: string, brief: string) => `${title}を Material 3 Expressive のデザインで実装してください。${brief ? trimEnd(brief) + "。" : ""}`,
+    intro: (title: string, brief: string) => `${title}を Miuix (HyperOS) のデザインで実装してください。${brief ? trimEnd(brief) + "。" : ""}`,
     titleOnly: (name: string) => `${name}画面`,
     titleAll: (n: number) => (n > 1 ? "このアプリ" : "この画面"),
     target: (vp: Viewport, pl: Platform, dark: boolean, both: boolean) =>
@@ -1595,10 +1596,10 @@ const PH = {
     hColor: "## カラー",
     dynamic: (pl: Platform) =>
       pl === "web"
-        ? "ダイナミックカラーを使います。ブラウザや OS がユーザーのアクセントカラーを公開している場合はそれを種にして Material 3 のスキームを生成し、取得できない環境では下の色をフォールバックにしてください。"
+        ? "ダイナミックカラーを使います。ブラウザや OS がユーザーのアクセントカラーを公開している場合はそれを種にして Miuix のスキームを生成し、取得できない環境では下の色をフォールバックにしてください。"
         : "ダイナミックカラーを使います。Android 12 以降ではユーザーの壁紙から生成されるカラースキーム（dynamicLightColorScheme / dynamicDarkColorScheme）を適用し、それが使えない端末では下の色をフォールバックにしてください。",
     colorIntro: (label: string, fallback: boolean, th: Theme) => {
-      const scheme = `Material 3 の${th.bothModes ? "ライトとダークの" : th.dark ? "ダーク" : "ライト"}カラースキーム${th.contrast === "high" ? "（高コントラスト）" : th.contrast === "medium" ? "（中コントラスト）" : ""}`;
+      const scheme = `Miuix（HyperOS）の${th.bothModes ? "ライトとダークの" : th.dark ? "ダーク" : "ライト"}カラースキーム${th.contrast === "high" ? "（高コントラスト）" : th.contrast === "medium" ? "（中コントラスト）" : ""}`;
       return `${fallback ? "フォールバック用のテーマ" : "テーマ"}は ${label} 系です。${scheme}に次の色を設定し、UI の色はすべてこのロール経由で参照してください。`;
     },
     hTheme: "## 形・文字・動き",
@@ -1617,7 +1618,7 @@ const PH = {
   },
   en: {
     screen: "screen",
-    intro: (title: string, brief: string) => `Please implement ${title} in the Material 3 Expressive design language.${brief ? ` ${trimEnd(brief)}.` : ""}`,
+    intro: (title: string, brief: string) => `Please implement ${title} in the Miuix (HyperOS) design language.${brief ? ` ${trimEnd(brief)}.` : ""}`,
     titleOnly: (name: string) => `the ${name} screen`,
     titleAll: (n: number) => (n > 1 ? "this app" : "this screen"),
     target: (vp: Viewport, pl: Platform, dark: boolean, both: boolean) =>
@@ -1639,10 +1640,10 @@ const PH = {
     hColor: "## Colors",
     dynamic: (pl: Platform) =>
       pl === "web"
-        ? "Use dynamic color: where the browser or OS exposes the user's accent color, generate the Material 3 scheme from it as the seed, and fall back to the colors below where it is unavailable."
+        ? "Use dynamic color: where the browser or OS exposes the user's accent color, generate the Miuix scheme from it as the seed, and fall back to the colors below where it is unavailable."
         : "Use dynamic color: on Android 12+ apply the scheme generated from the user's wallpaper (dynamicLightColorScheme / dynamicDarkColorScheme), and fall back to the colors below where it is unavailable.",
     colorIntro: (label: string, fallback: boolean, th: Theme) => {
-      const scheme = `Material 3 ${th.bothModes ? "light and dark color schemes" : `${th.dark ? "dark" : "light"} color scheme`}${th.contrast === "high" ? " (high contrast)" : th.contrast === "medium" ? " (medium contrast)" : ""}`;
+      const scheme = `Miuix (HyperOS) ${th.bothModes ? "light and dark color schemes" : `${th.dark ? "dark" : "light"} color scheme`}${th.contrast === "high" ? " (high contrast)" : th.contrast === "medium" ? " (medium contrast)" : ""}`;
       return `The ${fallback ? "fallback theme" : "theme"} is ${label}. Set these on the ${scheme} and reference every UI color through its role.`;
     },
     hTheme: "## Shape, type and motion",
@@ -1661,7 +1662,7 @@ const PH = {
   },
   zh: {
     screen: "屏幕",
-    intro: (title: string, brief: string) => `请用 Material 3 Expressive 的设计实现${title}。${brief ? trimEnd(brief) + "。" : ""}`,
+    intro: (title: string, brief: string) => `请用 Miuix (HyperOS) 的设计实现${title}。${brief ? trimEnd(brief) + "。" : ""}`,
     titleOnly: (name: string) => `${name}屏幕`,
     titleAll: (n: number) => (n > 1 ? "这个应用" : "这个屏幕"),
     target: (vp: Viewport, pl: Platform, dark: boolean, both: boolean) =>
@@ -1683,10 +1684,10 @@ const PH = {
     hColor: "## 配色",
     dynamic: (pl: Platform) =>
       pl === "web"
-        ? "使用动态配色：浏览器或系统提供用户强调色时，以它为种子生成 Material 3 配色方案；无法获取时使用下面的颜色作为备用。"
+        ? "使用动态配色：浏览器或系统提供用户强调色时，以它为种子生成 Miuix 配色方案；无法获取时使用下面的颜色作为备用。"
         : "使用动态配色：在 Android 12 及以上应用由用户壁纸生成的配色方案（dynamicLightColorScheme / dynamicDarkColorScheme），不支持的设备则使用下面的颜色作为备用。",
     colorIntro: (label: string, fallback: boolean, th: Theme) => {
-      const scheme = `Material 3 的${th.bothModes ? "浅色和深色" : th.dark ? "深色" : "浅色"}配色方案${th.contrast === "high" ? "（高对比度）" : th.contrast === "medium" ? "（中对比度）" : ""}`;
+      const scheme = `Miuix（HyperOS）的${th.bothModes ? "浅色和深色" : th.dark ? "深色" : "浅色"}配色方案${th.contrast === "high" ? "（高对比度）" : th.contrast === "medium" ? "（中对比度）" : ""}`;
       return `${fallback ? "备用主题" : "主题"}为 ${label} 系。请在${scheme}中设置以下颜色，UI 的所有颜色都通过这些角色引用。`;
     },
     hTheme: "## 形状、字体与动效",
@@ -1705,7 +1706,7 @@ const PH = {
   },
   ko: {
     screen: "화면",
-    intro: (title: string, brief: string) => `Material 3 Expressive 디자인으로 구현해 주세요: ${title}.${brief ? ` ${trimEnd(brief)}.` : ""}`,
+    intro: (title: string, brief: string) => `Miuix (HyperOS) 디자인으로 구현해 주세요: ${title}.${brief ? ` ${trimEnd(brief)}.` : ""}`,
     titleOnly: (name: string) => `${name} 화면`,
     titleAll: (n: number) => (n > 1 ? "이 앱" : "이 화면"),
     target: (vp: Viewport, pl: Platform, dark: boolean, both: boolean) => `${vp === "phone" ? "세로형 휴대전화 화면(412×892dp)을 대상으로 하며" : vp === "desktop" ? `${pl === "web" ? "데스크톱 브라우저" : "가로형 태블릿"} 화면(1280×800 기준)을 대상으로 하며` : vp === "mixed" ? `세로형 휴대전화(412×892)와 ${pl === "web" ? "데스크톱 브라우저" : "가로형 태블릿"}(1280×800)을 모두 지원하며, 이름이 같은 화면은 서로 다른 너비의 동일한 화면이므로 반응형으로 구현하고` : "레이아웃은 자유 배치이며"}, ${both ? "라이트 모드와 다크 모드를 모두 지원하고 기기의 시스템 설정을 따른다" : `${dark ? "다크" : "라이트"} 모드만 지원한다`}.`,
@@ -1713,9 +1714,9 @@ const PH = {
     schemeHead: (dark: boolean) => (dark ? "다크 색상 구성:" : "라이트 색상 구성:"),
     sketch: "아래 화면 구성은 의도를 전달하는 대략적인 스케치이며 완성 사양이 아니다. 정적인 그림처럼 복제하지 말고 이 종류의 제품에 일반적으로 필요한 기능을 갖춘 실제 사용 가능한 앱으로 완성한다.",
     hColor: "## 색상",
-    dynamic: (pl: Platform) => pl === "web" ? "동적 색상을 사용한다. 브라우저나 운영체제에서 사용자의 강조 색상을 제공하면 이를 기준으로 Material 3 색상 구성을 생성하고, 사용할 수 없으면 아래 색상으로 대체한다." : "동적 색상을 사용한다. Android 12 이상에서는 사용자 배경화면에서 생성된 색상 구성(dynamicLightColorScheme / dynamicDarkColorScheme)을 적용하고 사용할 수 없는 기기에서는 아래 색상을 대체 값으로 사용한다.",
+    dynamic: (pl: Platform) => pl === "web" ? "동적 색상을 사용한다. 브라우저나 운영체제에서 사용자의 강조 색상을 제공하면 이를 기준으로 Miuix 색상 구성을 생성하고, 사용할 수 없으면 아래 색상으로 대체한다." : "동적 색상을 사용한다. Android 12 이상에서는 사용자 배경화면에서 생성된 색상 구성(dynamicLightColorScheme / dynamicDarkColorScheme)을 적용하고 사용할 수 없는 기기에서는 아래 색상을 대체 값으로 사용한다.",
     colorIntro: (label: string, fallback: boolean, th: Theme) => {
-      const scheme = `Material 3 ${th.bothModes ? "라이트 및 다크" : th.dark ? "다크" : "라이트"} 색상 구성${th.contrast === "high" ? "(고대비)" : th.contrast === "medium" ? "(중간 대비)" : ""}`;
+      const scheme = `Miuix (HyperOS) ${th.bothModes ? "라이트 및 다크" : th.dark ? "다크" : "라이트"} 색상 구성${th.contrast === "high" ? "(고대비)" : th.contrast === "medium" ? "(중간 대비)" : ""}`;
       return `${fallback ? "대체 테마" : "테마"}는 ${label} 계열이다. ${scheme}에 다음 색상을 설정하고 모든 UI 색상을 해당 역할로 참조한다.`;
     },
     hTheme: "## 모양, 글꼴 및 모션",
@@ -1840,7 +1841,7 @@ export function buildPrompt(doc: Doc, widths: Record<string, number>, onlyFrameI
       }
     }
   const styleNotes = kindsUsed
-    .map((k) => (k === "navRail" && wideRail ? `${legacyRail ? `${STYLE_NOTES[lang].navRail} ` : ""}${WIDE_RAIL_STYLE[lang]}` : (platform === "web" && STYLE_NOTES_WEB[lang][k]) || STYLE_NOTES[lang][k]))
+    .map((k) => (miuixNote(lang, k) ?? (k === "navRail" && wideRail ? `${legacyRail ? `${STYLE_NOTES[lang].navRail} ` : ""}${WIDE_RAIL_STYLE[lang]}` : (platform === "web" && STYLE_NOTES_WEB[lang][k]) || STYLE_NOTES[lang][k])))
     .filter((s): s is string => !!s);
 
   // isProject deliberately accepts legacy minimal documents without title or brief
@@ -1849,6 +1850,7 @@ export function buildPrompt(doc: Doc, widths: Record<string, number>, onlyFrameI
   lines.push(ph.intro(title, typeof doc.brief === "string" ? doc.brief.trim() : ""));
   lines.push(ph.target(viewport, platform, th.dark, th.bothModes));
   lines.push(ph.platform(platform));
+  lines.push(MIUIX_MAPPING[lang]);
   lines.push(ph.sketch);
 
   lines.push("");

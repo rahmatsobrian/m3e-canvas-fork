@@ -1,5 +1,6 @@
 "use client";
 
+import { MIUIX_LIST_KINDS, isMiuixKind } from "@/lib/miuix";
 import { useEffect, useState } from "react";
 import {
   CAROUSEL_HEIGHTS,
@@ -675,6 +676,22 @@ export function PartInspector({
           <ProgressValue item={item} onChange={onChange} p={p} />
         </Section>
       )}
+      {/* ---------- Miuix parts: their entries, state and value ---------- */}
+      {isMiuixKind(kind) && MIUIX_LIST_KINDS.includes(kind) && (
+        <Section id="part-entries" icon="list" title={t("options", lang)} p={p}>
+          <EntryList item={item} onChange={onChange} p={p} icons={false} selectable />
+        </Section>
+      )}
+      {isMiuixKind(kind) && (spec.hasChecked || spec.hasValue || kind === "arrowPreference" || kind === "numberPicker") && (
+        <Section id="part-state" icon="tune" title={t("state", lang)} p={p}>
+          {spec.hasChecked && <Toggle on={!!item.checked} onChange={(checked) => onChange({ checked })} p={p} icon="check" label={t("state", lang)} grow />}
+          {spec.hasValue && <Slider icon="percent" title={t("progressState", lang)} value={item.value ?? 40} min={0} max={100} step={1} onChange={(value) => onChange({ value })} p={p} unit="%" />}
+          {kind === "rangeSliderPreference" && <Slider icon="percent" title={t("progressState", lang)} value={item.value2 ?? 75} min={0} max={100} step={1} onChange={(value2) => onChange({ value2 })} p={p} unit="%" />}
+          {kind === "numberPicker" && <Slider icon="pin" title={t("state", lang)} value={item.value ?? 8} min={0} max={99} step={1} onChange={(value) => onChange({ value })} p={p} />}
+          {kind === "arrowPreference" && <Field value={item.trailing ?? ""} onChange={(trailing) => onChange({ trailing })} placeholder={t("supporting", lang)} p={p} />}
+        </Section>
+      )}
+      {isMiuixKind(kind) && spec.size && sizeSection(widthRows())}
       {kind === "slider" && (
         <Section id="part-state" icon="tune" title={t("state", lang)} p={p}>
           <Slider icon="percent" title={t("progressState", lang)} value={item.value ?? SLIDER_DEFAULT_VALUE} min={0} max={100} step={1} onChange={(value) => onChange({ value })} p={p} unit="%" />

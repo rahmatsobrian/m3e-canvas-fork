@@ -33,6 +33,14 @@ M3E Canvas is a free, open-source sketchpad for app screens made of real Materia
 
 <p align="center"><a href="https://lnkiai.github.io/m3e-canvas/"><img src="docs/readme/ui/open-en.png" height="56" alt="Open the app" /></a></p>
 
+## Miuix edition
+
+This fork draws every part the way [Miuix](https://compose-miuix-ui.github.io/miuix/) (HyperOS design for Compose Multiplatform) draws it, and the generated prompt asks the coding agent to build with `top.yukonga.miuix.kmp` inside a Miuix `Scaffold`.
+
+- **Theme**: `lib/miuix.ts` holds the HyperOS light and dark schemes (the default palette is now "Miuix") and the dp metrics taken from Miuix's `*Defaults` objects.
+- **Restyled parts**: buttons (16dp rounded), FAB (60dp circle), switch (49x28), checkbox and radio (26dp circles), slider, text field, search bar, top app bar, navigation bar and rail, tab row, floating toolbar, card, list item (BasicComponent), dialog, snackbar.
+- **New parts (18)**: SmallTitle, Badge, BreadcrumbBar, Tooltip, NumberPicker, PullToRefresh, ColorPalette, ColorPicker, ArrowPreference, SwitchPreference, CheckboxPreference, RadioButtonPreference, SliderPreference, RangeSliderPreference, DropdownPreference, SpinnerPreference, ListPopup, CascadingListPopup. Renderers are in `components/MiuixParts.tsx`.
+
 ## <img src="docs/readme/ui/icon-how.png" width="32" height="32" align="absmiddle" alt="" /> How it works
 
 <picture>
