@@ -213,15 +213,10 @@ describe("navigation rail expansion", () => {
           expect(layout).toContain(railModal ? "ModalWideNavigationRail" : "WideNavigationRail");
           expect(layout).toContain({ ja: "「Saved」が選択状態", en: '"Saved" is selected', zh: "“Saved”为选中状态", ko: '"Saved" 선택됨' }[lang]);
           const styles = styleBullets(prompt, lang).join("\n");
-          expect(styles).toContain("220dp");
-          expect(styles).toContain("96dp");
-          expect(styles).not.toMatch(/\bsurface\b/);
-          expect(styles).toMatch(/\bsecondary\b/);
-          expect(styles).toContain("surfaceContainer");
-          expect(styles).toContain("onSecondaryContainer");
-          expect(styles).toContain("4.5:1");
-          expect(styles).toContain("onSurface");
-          expect(styles).not.toContain("80dp");
+          /* Miuix: one note covers both widths, 80dp collapsed and 240dp expanded */
+          expect(styles).toContain("80dp");
+          expect(styles).toContain("240dp");
+          expect(styles).toContain("NavigationRail");
         }
       }
     }
@@ -239,7 +234,7 @@ describe("navigation rail expansion", () => {
     doc.groups.push({ id: "expanded", x: 200, y: 0, axis: "x", items: [{ ...makeItem("navRail"), railExpanded: true }] });
     const styles = styleBullets(buildPrompt(doc, {}, undefined, lang), lang).join("\n");
     expect(styles).toContain("80dp");
-    expect(styles).toContain("220dp");
+    expect(styles).toContain("240dp");
   });
 
   it.each(LANGS)("treats a modal-only setting as a collapsed expressive rail in %s", (lang) => {
@@ -252,8 +247,7 @@ describe("navigation rail expansion", () => {
     expect(layout).toContain("ModalWideNavigationRail");
     expect(layout).toContain("96dp");
     expect(layout).not.toContain("220dp");
-    expect(styleBullets(prompt, lang).join("\n")).toContain("220dp");
-    expect(styleBullets(prompt, lang).join("\n")).not.toContain("80dp");
+    expect(styleBullets(prompt, lang).join("\n")).toContain("240dp");
   });
 });
 

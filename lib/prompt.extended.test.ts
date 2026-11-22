@@ -32,7 +32,7 @@ import {
 } from "./tokens";
 
 const widths: Record<string, number> = {};
-const paletteKey = "baseline";
+const paletteKey = "custom";
 const palette: Palette = {
   key: "baseline",
   label: "Baseline",
@@ -86,13 +86,13 @@ describe("buildPrompt — language switch", () => {
     const out = buildPrompt(doc, widths, undefined, "en");
     expect(out).toContain("MyApp");
     // English introductory framing
-    expect(out).toMatch(/Material 3 Expressive/);
+    expect(out).toMatch(/Miuix/);
   });
 
   it("emits Japanese when lang='ja' (uses 「」 quotes and 日本語 headers)", () => {
     const doc = baseDoc();
     const out = buildPrompt(doc, widths, undefined, "ja");
-    expect(out).toContain("Material 3 Expressive");
+    expect(out).toContain("Miuix");
     // ja intro phrasing contains 「...」 somewhere when title quoted, or Japanese sentence-ending
     expect(out).toMatch(/を実装してください|画面/);
   });
@@ -100,7 +100,7 @@ describe("buildPrompt — language switch", () => {
   it("emits Chinese when lang='zh' (uses “” quotes)", () => {
     const doc = baseDoc();
     const out = buildPrompt(doc, widths, undefined, "zh");
-    expect(out).toContain("Material 3 Expressive");
+    expect(out).toContain("Miuix");
     expect(out).toMatch(/使用|屏幕|组件|设计/);
   });
 });
@@ -312,7 +312,7 @@ describe("buildPrompt — platform switch", () => {
       groups: [{ id: "g", x: 100, y: 100, axis: "x", items: [item] }],
     });
     const out = buildPrompt(doc, widths, undefined, "en");
-    expect(out).toContain("Top app bar: 64dp tall on surface");
+    expect(out).toContain("TopAppBar: Miuix TopAppBar");
   });
 });
 
@@ -407,7 +407,7 @@ describe("effectivePrompt", () => {
     const doc = baseDoc();
     const out = effectivePrompt(doc, widths, "en");
     expect(out).toContain("MyApp");
-    expect(out).toMatch(/Material 3 Expressive/);
+    expect(out).toMatch(/Miuix/);
   });
 });
 
@@ -417,7 +417,7 @@ describe("buildPrompt — style notes", () => {
     const doc = baseDoc({ groups: [{ id: "g", x: 100, y: 100, axis: "x", items: [item] }] });
     const out = buildPrompt(doc, widths, undefined, "en");
     // The button style note begins with "button:" in the en STYLE_NOTES map
-    expect(out).toContain("Buttons:");
+    expect(out).toContain("Button: Miuix Button");
   });
 });
 

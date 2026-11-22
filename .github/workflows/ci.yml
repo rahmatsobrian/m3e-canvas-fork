@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 # Read-only: this also runs on pull requests from forks.
 permissions:
@@ -24,8 +25,71 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
+
+      # Every stage writes its full log to logs/, and a short failures-only report goes to
+      # logs/failures.txt and the job summary. Download the "ci-logs" artifact instead of
+      # copying a long log by hand.
+      - name: typecheck
+        id: typecheck
+        continue-on-error: true
+        run: |
+          mkdir -p logs
+          set -o pipefail
+          npm run typecheck 2>&1 | tee logs/typecheck.txt
+      - name: test
+        id: test
+        continue-on-error: true
+        run: |
+          mkdir -p logs
+          set -o pipefail
+          npx vitest run --reporter=default --reporter=json --outputFile=logs/vitest.json 2>&1 | tee logs/test.txt
+      - name: build
+        id: build
+        continue-on-error: true
+        run: |
+          mkdir -p logs
+          set -o pipefail
+          npm run build 2>&1 | tee logs/build.txt
         env:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+
+      - name: failures report
+        if: always()
+        run: |
+          mkdir -p logs
+          {
+            echo "# CI failures (typecheck=${{ steps.typecheck.outcome }}, test=${{ steps.test.outcome }}, build=${{ steps.build.outcome }})"
+            echo
+            echo "## Typecheck errors"
+            grep -E "error TS" logs/typecheck.txt 2>/dev/null | head -100 || true
+            echo
+            echo "## Failed tests"
+            if [ -f logs/vitest.json ]; then
+              node -e '
+                const r = JSON.parse(require("fs").readFileSync("logs/vitest.json", "utf8"));
+                for (const f of r.testResults) for (const t of f.assertionResults) {
+                  if (t.status !== "failed") continue;
+                  console.log("FAIL " + f.name.replace(process.cwd() + "/", "") + " > " + t.fullName);
+                  console.log("  " + String((t.failureMessages || [])[0] || "").split("\n").slice(0, 3).join("\n  "));
+                }
+              ' | head -300
+            else
+              grep -E "^\s+×|FAIL " logs/test.txt 2>/dev/null | head -100 || true
+            fi
+            echo
+            echo "## Build errors"
+            grep -iE "error|failed" logs/build.txt 2>/dev/null | head -50 || true
+          } > logs/failures.txt
+          cat logs/failures.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: logs/
+          retention-days: 14
+
+      - name: fail if any stage failed
+        if: steps.typecheck.outcome == 'failure' || steps.test.outcome == 'failure' || steps.build.outcome == 'failure'
+        run: exit 1

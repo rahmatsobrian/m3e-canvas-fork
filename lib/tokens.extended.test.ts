@@ -77,7 +77,7 @@ import {
 
 describe("constants", () => {
   it("key M3 dimensions match Material defaults", () => {
-    expect(H).toBe(56);
+    expect(H).toBe(48);
     expect(PHONE_W).toBe(412);
     expect(PHONE_H).toBe(892);
     expect(DESKTOP_W).toBe(1280);

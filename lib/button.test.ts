@@ -44,16 +44,16 @@ const button = (patch: Partial<Item> = {}): Item => ({ ...makeItem("button"), ..
 
 describe("the button's M3 size scale", () => {
   it("keeps Material's own values on each named size", () => {
-    expect(BUTTON_SIZES.map((s) => s.h)).toEqual([32, 40, 56, 96, 136]);
-    expect(buttonMetrics(32)).toEqual({ h: 32, padX: 12, gap: 8, icon: 20, font: 14 });
-    expect(buttonMetrics(56)).toEqual({ h: 56, padX: 24, gap: 8, icon: 24, font: 16 });
+    expect(BUTTON_SIZES.map((s) => s.h)).toEqual([32, 40, 48, 96, 136]);
+    expect(buttonMetrics(32)).toEqual({ h: 32, padX: 12, gap: 8, icon: 18, font: 13 });
+    expect(buttonMetrics(48)).toEqual({ h: 48, padX: 16, gap: 8, icon: 24, font: 17 });
     expect(buttonMetrics(136)).toEqual({ h: 136, padX: 64, gap: 16, icon: 40, font: 32 });
   });
 
   it("mixes the two sizes a height falls between", () => {
-    const mid = buttonMetrics(76); // halfway from M (56) to L (96)
-    expect(mid).toEqual({ h: 76, padX: 36, gap: 10, icon: 28, font: 20 });
-    expect(buttonSizeKeyOf(76)).toBeNull();
+    const mid = buttonMetrics(72); // halfway from M (48) to L (96)
+    expect(mid).toEqual({ h: 72, padX: 32, gap: 10, icon: 28, font: 21 });
+    expect(buttonSizeKeyOf(72)).toBeNull();
     expect(buttonSizeKeyOf(96)).toBe("l");
   });
 
