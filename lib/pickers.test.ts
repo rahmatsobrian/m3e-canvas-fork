@@ -207,7 +207,7 @@ describe("the FAB's three shapes", () => {
     expect(hasMenu(withMenu)).toBe(true);
     expect(withMenu.tabs?.length).toBeGreaterThan(1);
     /* shut, it is a circle; open, it is as tall as its entries make it */
-    expect(sizeOf(withMenu, {})).toEqual({ w: 56, h: 56 });
+    expect(sizeOf(withMenu, {})).toEqual({ w: 60, h: 60 });
     const shown = { ...withMenu, [fabOpen]: true };
     expect(menuOpen(shown)).toBe(true);
     expect(sizeOf(shown, { [fab.id]: 200 })).toEqual({ w: 200, h: menuHeight(shown, 56) });

@@ -67,8 +67,9 @@ describe("the button's M3 size scale", () => {
   it("carries the height into the drawn box, its corners and how narrow it may be", () => {
     const tall = button({ size: 200, size2: 96 });
     expect(sizeOf(tall, {})).toEqual({ w: 200, h: 96 });
-    expect(baseRadii(tall)).toEqual({ tl: 48, tr: 48, bl: 48, br: 48 });
-    /* at its narrowest the button is a circle, so a taller one cannot be as narrow */
+    /* Miuix buttons are rounded rectangles: 16dp, growing in proportion on the taller sizes */
+    expect(baseRadii(tall)).toEqual({ tl: 32, tr: 32, bl: 32, br: 32 });
+    /* a taller button cannot be as narrow as a short one */
     expect(buttonHeightOf(tall)).toBe(96);
     expect(buttonHeightOf(button())).toBe(H);
   });
@@ -95,8 +96,9 @@ describe("a tap that opens a link", () => {
 describe("an icon button is the button that is all icon", () => {
   it("takes the same five sizes, measured across its circle", () => {
     const it = makeItem("iconButton");
-    expect(it.size).toBe(H);
-    expect(buttonHeightOf(it)).toBe(H);
+    /* Miuix's IconButton is 40dp */
+    expect(it.size).toBe(40);
+    expect(buttonHeightOf(it)).toBe(40);
     expect(buttonHeightOf({ ...it, size: 96 })).toBe(96);
     expect(buttonHeightOf({ ...it, size: 999 })).toBe(BUTTON_H_MAX);
     /* a circle: one measure both ways, and corners to match */
@@ -105,7 +107,7 @@ describe("an icon button is the button that is all icon", () => {
   });
 
   it("reads its icon off the same scale a button does", () => {
-    expect(buttonMetrics(buttonHeightOf(makeItem("iconButton"))).icon).toBe(24);
+    expect(buttonMetrics(buttonHeightOf(makeItem("iconButton"))).icon).toBe(20);
     expect(buttonMetrics(buttonHeightOf({ ...makeItem("iconButton"), size: 136 })).icon).toBe(40);
   });
 });

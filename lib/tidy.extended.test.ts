@@ -171,7 +171,7 @@ describe("tidyFrame", () => {
     const g = group("g1", 0, 0, [fab("f")]);
     const out = tidyFrame([g], f, [f], widths)!;
     const f0 = out.find((x) => x.items[0].kind === "fab")!;
-    expect([f0.x, f0.y]).toEqual([PHONE_W - PHONE_MARGIN - 56, PHONE_H - PHONE_MARGIN - 56]);
+    expect([f0.x, f0.y]).toEqual([PHONE_W - PHONE_MARGIN - 60, PHONE_H - PHONE_MARGIN - 60]);
   });
 
   it("stacks loose rows on the layout margin from the top down", () => {

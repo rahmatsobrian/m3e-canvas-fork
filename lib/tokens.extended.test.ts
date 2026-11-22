@@ -312,7 +312,7 @@ describe("normalizeTheme", () => {
       bothModes: false,
       contrast: "standard",
       shape: "rounded",
-      font: "roboto",
+      font: "system",
       emphasized: false,
       motion: "standard",
     });

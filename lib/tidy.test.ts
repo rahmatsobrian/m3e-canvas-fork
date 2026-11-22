@@ -21,7 +21,7 @@ describe("tidyFrame", () => {
 
   it("moves a FAB to the bottom-right corner, one margin in", () => {
     const out = tidyFrame([grp("g-fab", 40, 100, [part("fab", "fab")])], frame, frames, {});
-    expect([out![0].x, out![0].y]).toEqual([PHONE_W - PHONE_MARGIN - 56, PHONE_H - PHONE_MARGIN - 56]);
+    expect([out![0].x, out![0].y]).toEqual([PHONE_W - PHONE_MARGIN - 60, PHONE_H - PHONE_MARGIN - 60]);
   });
 
   it("joins neighbouring buttons into one connected run in reading order", () => {
@@ -72,8 +72,8 @@ describe("tidyFrame placement", () => {
     const f: Frame = { ...frame, place: "bottom" };
     const out = tidyFrame(stage(), f, [f], {})!;
     const ys = rowsOf(out);
-    expect(ys[1] + 56).toBe(bodyBottom);
-    expect(ys[1] - ys[0]).toBe(56 + 16); // rows keep their gap
+    expect(ys[1] + 48).toBe(bodyBottom);
+    expect(ys[1] - ys[0]).toBe(48 + 16); // rows keep their gap
   });
 
   it("centers the body between the bars", () => {
@@ -81,7 +81,7 @@ describe("tidyFrame placement", () => {
     const out = tidyFrame(stage(), f, [f], {})!;
     const ys = rowsOf(out);
     const above = ys[0] - bodyTop;
-    const below = bodyBottom - (ys[1] + 56);
+    const below = bodyBottom - (ys[1] + 48);
     expect(Math.abs(above - below)).toBeLessThanOrEqual(1);
   });
 
@@ -90,7 +90,7 @@ describe("tidyFrame placement", () => {
     const one = stage().filter((g) => g.id !== "g-b");
     const out = tidyFrame(one, f, [f], {})!;
     const y = out.find((g) => g.id === "g-a")!.y;
-    expect(Math.abs(y - bodyTop - (bodyBottom - (y + 56)))).toBeLessThanOrEqual(1);
+    expect(Math.abs(y - bodyTop - (bodyBottom - (y + 48)))).toBeLessThanOrEqual(1);
   });
 
   it("keeps the block at the top when some rows do not fit", () => {
@@ -105,7 +105,7 @@ describe("tidyFrame placement", () => {
       grp("g-box", 0, 560, [{ ...part("box", "box"), size2: 600 }]),
     ];
     const out = tidyFrame(tall, f, [f], {})!;
-    expect(rowsOf(out)).toEqual([bodyTop, bodyTop + 56 + 16]);
+    expect(rowsOf(out)).toEqual([bodyTop, bodyTop + 48 + 16]);
     expect(out.find((g) => g.id === "g-box")!.y).toBe(560);
   });
 
@@ -114,8 +114,8 @@ describe("tidyFrame placement", () => {
     const out = tidyFrame(stage(), f, [f], {})!;
     const ys = rowsOf(out);
     const above = ys[0] - bodyTop;
-    const between = ys[1] - (ys[0] + 56);
-    const below = bodyBottom - (ys[1] + 56);
+    const between = ys[1] - (ys[0] + 48);
+    const below = bodyBottom - (ys[1] + 48);
     expect(Math.abs(above - between)).toBeLessThanOrEqual(1);
     expect(Math.abs(between - below)).toBeLessThanOrEqual(1);
   });
@@ -216,7 +216,7 @@ describe("a screen longer than the device", () => {
   const stage = () => [
     grp("g-bar", 0, 0, [part("topAppBar", "bar")]),
     grp("g-row", 16, 400, [part("button", "row")]),
-    grp("g-fab", PHONE_W - PHONE_MARGIN - 56, PHONE_H - navH - PHONE_MARGIN - 56, [part("fab", "fab")]),
+    grp("g-fab", PHONE_W - PHONE_MARGIN - 60, PHONE_H - navH - PHONE_MARGIN - 60, [part("fab", "fab")]),
     grp("g-nav", 0, PHONE_H - navH, [part("bottomNav", "nav")]),
   ];
   const ys = (groups: Group[]) => Object.fromEntries(groups.map((g) => [g.id, g.y]));
@@ -232,7 +232,7 @@ describe("a screen longer than the device", () => {
   it("takes what stands at its foot along when it grows, and brings it back when it shrinks", () => {
     const grown = stretchFrame(stage(), frame, PHONE_H * 2, frames, {});
     expect(grown.frames[0].length).toBe(PHONE_H * 2);
-    expect(ys(grown.groups)).toEqual({ "g-bar": 0, "g-row": 400, "g-fab": PHONE_H * 2 - navH - PHONE_MARGIN - 56, "g-nav": PHONE_H * 2 - navH });
+    expect(ys(grown.groups)).toEqual({ "g-bar": 0, "g-row": 400, "g-fab": PHONE_H * 2 - navH - PHONE_MARGIN - 60, "g-nav": PHONE_H * 2 - navH });
     const back = stretchFrame(grown.groups, grown.frames[0], PHONE_H, grown.frames, {});
     expect(back.frames[0].length).toBeUndefined();
     expect(ys(back.groups)).toEqual(ys(stage()));
